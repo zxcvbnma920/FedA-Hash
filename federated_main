@@ -32,8 +32,6 @@ class Logger(object):
     def flush(self):
         pass
 
-
-
 path = os.path.abspath(os.path.dirname(__file__))
 type_ = sys.getfilesystemencoding()
 sys.stdout = Logger('../save/log/new.txt')
@@ -69,7 +67,6 @@ if __name__ == '__main__':
     else:
         exit('Error: unrecognized model')
 
-
     gpus = [0, 1]
     global_model.to(device)
     print(global_model)
@@ -88,7 +85,6 @@ if __name__ == '__main__':
         if args.dataset == 'cifar':
             data_for_this_user = Split_for_each_user(args=args, dataset_train=train_dataset, dataset_test=test_dataset,
                                                      user_groups=user_groups, user_groups_test=user_groups_test, idx=idx)
-        
         elif args.dataset == 'tinyimagenet':
             data_for_this_user = Spilt_data_tinyimagenet(args=args, user_groups=user_groups, user_groups_test=user_groups_test, idx=idx)
         user_data_list.append(data_for_this_user)
@@ -114,10 +110,7 @@ if __name__ == '__main__':
     best_P_H_local = 0
     best_P_local = [0 for i in range(8)]
     local_losses = [0 for i in range(args.num_users)]
-    
     for epoch in tqdm(range(args.epochs)):
-    
-        
         print(f'\n | Global Training Round : {epoch+1} |\n')
         train_model = copy.deepcopy(global_model)
         local_model = copy.deepcopy(global_model)
@@ -125,7 +118,6 @@ if __name__ == '__main__':
         m = max(int(args.frac * args.num_users), 1)
         idxs_users = np.random.choice(range(args.num_users), m, replace=False)
         idxs_users.sort()
-
         time1 = time.time()
         for idx in idxs_users:
             if idx == user_data_list[idx].idx:
@@ -155,7 +147,6 @@ if __name__ == '__main__':
                 local_losses[idx] = copy.deepcopy(loss)
             else:
                 exit('Error: cannot match user id with its data in training period')
-
         time2 = time.time() - time1
         print('every epoch Run Time sec:{:.4f}s, min:{:.4f}'.format(time2, time2/60))
        
