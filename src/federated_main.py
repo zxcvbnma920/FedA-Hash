@@ -34,7 +34,7 @@ class Logger(object):
 
 path = os.path.abspath(os.path.dirname(__file__))
 type_ = sys.getfilesystemencoding()
-sys.stdout = Logger('../save/log/new.txt')
+sys.stdout = Logger('../train.txt')
 
 if __name__ == '__main__':
     start_time = time.time()
@@ -133,13 +133,6 @@ if __name__ == '__main__':
                         global_weight, local_weight, loss = local_model_train.update_weights_mutuallearning(global_model=copy.deepcopy(global_model), global_round=epoch, local_model=copy.deepcopy(local_model))
                 elif args.algorithm == "fed_classify":
                     global_weight, local_weight, loss = local_model_train.update_weights_classify(model=copy.deepcopy(global_model), global_round=epoch)
-                elif args.algorithm == "moon":
-                    if epoch == 0:
-                        global_weight, local_weight, loss = local_model_train.update_weights(model=copy.deepcopy(global_model), global_round=epoch)
-                    else:
-                        neg_model.load_state_dict(local_weights_to_nextepoch[idx])
-                        local_model.load_state_dict(global_weights)
-                        global_weight, local_weight, loss = local_model_train.update_weights_moon(pos_model=copy.deepcopy(global_model), neg_model=copy.deepcopy(neg_model), global_round=epoch, model=copy.deepcopy(local_model))
                 else:
                     global_weight, local_weight, loss = local_model_train.update_weights(model=copy.deepcopy(global_model), global_round=epoch)
                 local_weights_to_agg[idx] = copy.deepcopy(global_weight)
