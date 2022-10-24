@@ -61,45 +61,29 @@ def get_dataset_cifar(args):
     """ Returns train and test datasets and a user group which is a dict where
     the keys are the user index and the values are the corresponding data for
     each of those users.
-    """
-    if args.dataset == 'cifar':
-        data_dir = '../data/cifar/'
-        train_transform = transforms.Compose([
-            #transforms.Resize(224),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-        ])
-        test_transform = transforms.Compose([
-            #transforms.Resize(224),
-            transforms.ToTensor(),
-            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-        ])
-        train_dataset = datasets.CIFAR10(data_dir, train=True, download=True,
-                                         transform=train_transform)
+    """    
+    data_dir = '../data/cifar/'
+    train_transform = transforms.Compose([
+        #transforms.Resize(224),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    ])
+    test_transform = transforms.Compose([
+        #transforms.Resize(224),
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    ])
+    train_dataset = datasets.CIFAR10(data_dir, train=True, download=True,
+                                     transform=train_transform)
 
-        test_dataset = datasets.CIFAR10(data_dir, train=False, download=True,
-                                        transform=test_transform)
+    test_dataset = datasets.CIFAR10(data_dir, train=False, download=True,
+                                    transform=test_transform)
         
-        if args.iid:
-            user_groups, user_groups_test = cifar_iid(train_dataset, test_dataset, args.num_users)
-        else:
-            user_groups, user_groups_test = cifar_noniid(train_dataset, test_dataset, args.num_users, args.partition)
-
-    elif args.dataset == 'mnist':
-        data_dir = '../data/mnist/'
-        apply_transform = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize((0.1307,), (0.3081,))])
-            train_dataset = datasets.MNIST(data_dir, train=True, download=True,
-                                           transform=apply_transform)
-            test_dataset = datasets.MNIST(data_dir, train=False, download=True,
-                                          transform=apply_transform)
-        
-        if args.iid:
-            user_groups, user_groups_test = mnist_iid(train_dataset, test_dataset, args.num_users)
-        else:
-            user_groups, user_groups_test = mnist_noniid(train_dataset, test_dataset, args.num_users)
+    if args.iid:
+        user_groups, user_groups_test = cifar_iid(train_dataset, test_dataset, args.num_users)
+    else:
+        user_groups, user_groups_test = cifar_noniid(train_dataset, test_dataset, args.num_users, args.partition)
 
     return train_dataset, test_dataset, user_groups, user_groups_test
 
