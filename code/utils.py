@@ -57,129 +57,57 @@ class Split_for_each_user():
         return trainloader, testloader
 
 
-class get_data_for_user():
-
-    def __init__(self, args, idx):
-        self.args = args
-        self.idx = idx
-        self.trainloader, self.testloader = self.train_test()
-        
-    def train_test(self):
-        path = "../data/mini-imagenet/"
-        train_transform = transforms.Compose([
-            transforms.Resize(256),
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomCrop(224),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-            ])
-        test_transform = transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-            ])
-        if self.args.iid:
-            train_dataset = ImageList(path + 'images',
-                                      pd.read_csv(os.path.join(path + '/iid', 'train{}.csv'.format(self.idx))),
-                                      transform=train_transform)
-        
-            test_dataset = ImageList(path + 'images',
-                                     pd.read_csv(os.path.join(path + '/iid', 'test{}.csv'.format(self.idx))),
-                                     transform=test_transform)
-        else:
-            train_dataset = ImageList(path + 'images',
-                                      pd.read_csv(os.path.join(path + '/non-iid', 'train{}.csv'.format(self.idx))),
-                                      transform=train_transform)
-            test_dataset = ImageList(path + 'images',
-                                     pd.read_csv(os.path.join(path + '/non-iid', 'test{}.csv'.format(self.idx))),
-                                     transform=test_transform)
-
-        trainloader = torch.utils.data.DataLoader(train_dataset,
-                                                  batch_size=self.args.local_bs,
-                                                  shuffle=True,
-                                                  num_workers=4)
-        testloader = torch.utils.data.DataLoader(test_dataset,
-                                                 batch_size=self.args.local_bs,
-                                                 shuffle=False,
-                                                 num_workers=4)
-
-        return trainloader, testloader
-
-
 def get_dataset_cifar(args):
     """ Returns train and test datasets and a user group which is a dict where
     the keys are the user index and the values are the corresponding data for
     each of those users.
     """
-
-    
     if args.dataset == 'cifar':
         data_dir = '../data/cifar/'
-
         train_transform = transforms.Compose([
             #transforms.Resize(224),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         ])
-
         test_transform = transforms.Compose([
             #transforms.Resize(224),
             transforms.ToTensor(),
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         ])
-
         train_dataset = datasets.CIFAR10(data_dir, train=True, download=True,
                                          transform=train_transform)
 
         test_dataset = datasets.CIFAR10(data_dir, train=False, download=True,
                                         transform=test_transform)
-
+        
         if args.iid:
             user_groups, user_groups_test = cifar_iid(train_dataset, test_dataset, args.num_users)
         else:
-            
             user_groups, user_groups_test = cifar_noniid(train_dataset, test_dataset, args.num_users, args.partition)
-            
 
-    elif args.dataset == 'mnist' or 'fmnist':
-        if args.dataset == 'mnist':
-            data_dir = '../data/mnist/'
-        else:
-            data_dir = '../data/fmnist/'
-
+    elif args.dataset == 'mnist':
+        data_dir = '../data/mnist/'
         apply_transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.1307,), (0.3081,))])
-        if args.dataset == 'mnist':
             train_dataset = datasets.MNIST(data_dir, train=True, download=True,
                                            transform=apply_transform)
-
             test_dataset = datasets.MNIST(data_dir, train=False, download=True,
                                           transform=apply_transform)
-        else: 
         
-            train_dataset = datasets.FashionMNIST(data_dir, train=True, download=True,
-                                           transform=apply_transform)
-
-            test_dataset = datasets.FashionMNIST(data_dir, train=False, download=True,
-                                          transform=apply_transform)
-
-
         if args.iid:
             user_groups, user_groups_test = mnist_iid(train_dataset, test_dataset, args.num_users)
         else:
-            if args.unequal:
-                user_groups, user_groups_test = mnist_noniid_unequal(train_dataset, test_dataset, args.num_users)
-            else:
-                user_groups, user_groups_test = mnist_noniid(train_dataset, test_dataset, args.num_users)
-
+            user_groups, user_groups_test = mnist_noniid(train_dataset, test_dataset, args.num_users)
 
     return train_dataset, test_dataset, user_groups, user_groups_test
 
 
 class Spilt_data_tinyimagenet():
+    """
+    Returns train and test datasets.
+    """
     def __init__(self, args, user_groups, user_groups_test, idx):
         self.args = args
         self.idx = idx
@@ -203,6 +131,10 @@ class Spilt_data_tinyimagenet():
 
 
 def load_tinyimagenet_data(args):
+    """ Returns train and test datasets and a user group which is a dict where
+    the keys are the user index and the values are the corresponding data for
+    each of those users.
+    """
     data_dir = '../data/tinyimagenet'
     transform = transforms.Compose([
             transforms.Resize(224),
@@ -214,12 +146,13 @@ def load_tinyimagenet_data(args):
 
     X_train, y_train = np.array([s[0] for s in xray_train_ds.samples]), np.array([int(s[1]) for s in xray_train_ds.samples])
     X_test, y_test = np.array([img for img in xray_test_ds.imgs]), np.array([label for label in xray_test_ds.labels])
+    
     if args.iid :
         user_groups, user_groups_test = tinyimagenet_iid(y_train, y_test, args.num_users)
     else:
         user_groups, user_groups_test = tinyimagenet_noniid(y_train, y_test, args.num_users, args.partition)
+    
     return xray_train_ds, xray_test_ds, user_groups, user_groups_test
-    #(X_train, y_train, X_test, y_test)
     
     
 class ImageList(object):
@@ -298,6 +231,7 @@ def average_weights(w):
 
 
 def aggregate_att(w_clients, w_server, stepsize, metric, dp):
+    
     w_next = copy.deepcopy(w_server)
     att, att_mat = {}, {}
     for k in w_server.keys():
