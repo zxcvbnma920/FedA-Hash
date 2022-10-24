@@ -51,7 +51,6 @@ class LocalUpdate(object):
             optimizer = torch.optim.Adadelta(model.parameters(), rho=0.9)
         
         lr = self.args.lr * (0.1 ** (epoch // self.args.epoch_lr_decrease))
-        
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr
 
@@ -62,13 +61,8 @@ class LocalUpdate(object):
         best_mAP = 0
         best_P = [ 0 for i in range(8)]
         best_P_H = 0
-                
         for iter in range(self.args.local_ep):
                 
-            lr = self.args.lr * (0.2 ** ((iter+1) // self.args.epoch_lr_decrease))
-            for param_group in optimizer.param_groups:
-                param_group['lr'] = lr
-
             all_labels = []
             batch_loss = []
             for batch_idx, (images, labels, ind) in enumerate(self.trainloader):
@@ -100,7 +94,6 @@ class LocalUpdate(object):
                     proximal_term = 0.0
                     for param_index, param in enumerate(model.parameters()):
                         proximal_term += ((self.args.mu / 2) * torch.norm((param - global_weight_collector[param_index])) ** 2)
-                    # loss = self.criterion(log_probs, labels)
                     loss = hash_loss + proximal_term
                 else:
                     loss = hash_loss
@@ -110,19 +103,6 @@ class LocalUpdate(object):
                 batch_loss.append(loss.item())
             epoch_loss.append(sum(batch_loss) / len(batch_loss))
             print('|User id : {} | Global Round : {} | Local Epoch : {} | Loss: {:.4f}'.format(self.id, global_round, iter, sum(batch_loss) / len(batch_loss)))
-            if (iter+1) % 30 == 0:
-                test_model = copy.deepcopy(model)
-                mAP, P, P_H = cal_map(test_model, self.trainloader, self.testloader, self.args.num_classes)
-                if mAP > best_mAP:
-                    best_mAP = mAP
-                for k in range(8):
-                    if P[k] > best_P[k]:
-                        best_P[k] = P[k]
-                if P_H > best_P_H:
-                    best_P_H = P_H
-                print('best map:', best_mAP)
-                print('best_P:', best_P)
-                print('best_P_H:', best_P_H)
                 
         return model.state_dict(), model.state_dict(), sum(epoch_loss) / len(epoch_loss)
        
