@@ -115,12 +115,3 @@ def shulie(first, end, step):
         x.append(i)
     return x
 
-if __name__ == '__main__':
-    dataset_train = datasets.MNIST('./data/mnist/', train=True, download=True,
-                                   transform=transforms.Compose([
-                                       transforms.ToTensor(),
-                                       transforms.Normalize((0.1307,),
-                                                            (0.3081,))
-                                   ]))
-    num = 100
-    d = mnist_noniid(dataset_train, num)
